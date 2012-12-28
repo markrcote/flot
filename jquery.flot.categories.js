@@ -64,6 +64,14 @@ as "categories" on the axis object, e.g. plot.getAxes().xaxis.categories.
         if (!(xCategories || yCategories))
             return;
 
+        if (xCategories) {
+            series.xaxis.options.forceBase10 = true;
+        }
+
+        if (yCategories) {
+            series.yaxis.options.forceBase10 = true;
+        }
+
         var format = datapoints.format;
 
         if (!format) {

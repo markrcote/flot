@@ -2597,6 +2597,7 @@ Licensed under the MIT license.
     $.plot.plugins = [];
 })(jQuery);
 
+
 // An inlined, default plugin for handling base-10 axes.  This is not an
 // external file to preserve backwards compatibility.  Any axes with a mode set
 // to "base10" or null will be handled by this plugin.
@@ -2612,7 +2613,7 @@ Licensed under the MIT license.
         plot.hooks.processDatapoints.push(function (plot, series, datapoints) {
             $.each(plot.getAxes(), function(axisName, axis) {
                 var opts = axis.options;
-                if (opts.mode == null || opts.mode == "base10") {
+                if (opts.mode == null || opts.mode == "base10" || opts.forceBase10) {
                     axis.tickGenerator = function (axis) {
                         var maxDec = opts.tickDecimals;
                         var dec = -Math.floor(Math.log(axis.delta) / Math.LN10);
@@ -2656,9 +2657,24 @@ Licensed under the MIT license.
                         return ticks;
                     };
 
-                    axis.tickFormatter = function (v, axis) {
+                    axis.tickFormatter = function (value, axis) {
+
                         var factor = Math.pow(10, axis.tickDecimals);
-                        return "" + Math.round(v * factor) / factor;
+                        var formatted = "" + Math.round(value * factor) / factor;
+
+                        // If tickDecimals was specified, ensure that we have exactly that
+                        // much precision; otherwise default to the value's own precision.
+
+                        if (axis.tickDecimals != null) {
+                            var decimal = formatted.indexOf(".");
+                            var precision = decimal == -1 ? 0 : formatted.length - decimal - 1;
+                            if (precision < axis.tickDecimals) {
+                                return (precision ? formatted : formatted + ".")
+                                    + ("" + factor).substr(1, axis.tickDecimals - precision);
+                            }
+                        }
+
+                        return formatted;
                     };
                 }
             });
